@@ -18,7 +18,7 @@ bash Miniforge3-Linux-x86_64.sh
 `
 (base) usuario@USUARIO:~$
 `
-### Se crea el entorno de trabajo `ensamble_env` con los siguentes programas seqkit, samtools, unicycler, flye, quast, fastqc, nanoplot, fastp y multiqc.
+### Se crea el entorno de trabajo `ensamble_env` con los siguentes programas FastQC, Samtools, NanoPlot, Fastp, MultiQC, Unicycler, Quats y Busco.
 ```
 mamba create -n ensamble_env -c bioconda -c conda-forge fastqc samtools nanoplot fastp multiqc unicycler quast busco --yes
 ```
