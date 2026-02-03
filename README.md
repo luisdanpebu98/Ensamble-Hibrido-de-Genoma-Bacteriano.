@@ -1,4 +1,4 @@
-# Ensamble Hibrido de Genoma Bacteriano.
+# 🧬Ensamble Hibrido de Genoma Bacteriano.🧫
 Protocolo para el ensamble híbrido de novo y anotación funcional de genomas bacterianos. Flujo de trabajo optimizado para la integración de lecturas cortas (Illumina) y largas (PacBio) mediante Unicycler, con anotación genómica automatizada usando Prokka.
 **Nota**: Este protocolo se realizo considerando el siguente Hardware:
 **Máquina:** Asus TUF GAMING A15
@@ -20,18 +20,19 @@ bash Miniforge3-Linux-x86_64.sh
 `
 ### Se crea el entorno de trabajo `ensamble_env` con los siguentes programas seqkit, samtools, unicycler, flye, quast, fastqc, nanoplot, fastp y multiqc.
 ```
-mamba create -n ensamble_env -c bioconda -c conda-forge seqkit samtools unicycler flye quast fastqc nanoplot fastp multiqc --yes
+mamba create -n ensamble_env -c bioconda -c conda-forge fastqc samtools nanoplot fastp multiqc unicycler quast busco --yes
 ```
 Descripcion de los programas:
 | Programa | Función Principal | Tipo de Datos |
 | :---: | :---: | :---: |
 | <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/4729e58a-13aa-4d2b-a9f4-a1fd06558aed" /> **FastQC** | Control de calidad de lecturas cortas | Illumina |
+| **Samtools** | Procesamiento de archivos biológicos y conversión de formatos (BAM a FASTQ) | Pacbio / Oxford Nanopore |
 | <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/598d5cb8-e36b-401c-a323-bc7f6e9e8cf0" /> **NanoPlot** | Estadísticas y calidad de lecturas largas | PacBio / Oxford Nanopore |
 | <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/ddeacd49-4d04-4b4e-9266-f5f80bbe11af" /> **fastp** | Control de calidad, filtrado y corrección | Lecturas cortas |
+| <img width="29" height="29" alt="image" src="https://github.com/user-attachments/assets/38b1e605-9a4f-46ca-9cdb-ff004feee2b7" /> **MultiQC** | Consolidación de reportes en un solo HTML | Todos los anteriores |
 | <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/17a08db0-15b2-40f5-a7e6-164d10555e10" /> **Unicycler** | Ensamble híbrido *de novo* asistido por grafos | Illumina + PacBio/ONT |
 | <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/3e4b62c9-16ac-4c0b-83aa-cf228c2aaaf2" /> **QUAST** | Evaluación de métricas del ensamble (N50, L50) | Contigs / Scaffolds |
-| <img width="29" height="29" alt="image" src="https://github.com/user-attachments/assets/38b1e605-9a4f-46ca-9cdb-ff004feee2b7" /> **MultiQC** | Consolidación de reportes en un solo HTML | Todos los anteriores |
-
+| <img width="28" height="28" alt="image" src="https://github.com/user-attachments/assets/f4fad507-2586-497b-b1f0-12e10f449faa" /> **Busco** | Evaluación de completitud biológica mediante la búsqueda de genes esenciales | Contigs / Scaffolds |
 ---
 Para activar tu entorno de trabajo usa el siguiente comando:
 ```
@@ -67,7 +68,7 @@ samtools fastq 00_Secuencias_crudas/Pacbio/*.bam > 00_Secuencias_crudas/Pacbio/[
 `[Nombre_del_modelo_de_estudio]` Aqui debes de colocar el nombre que desees.
 ### Posteriormente se evalua su calidad con Nanoplot.
 ```
-NanoPlot --threads 8 --fastq 00_Secuencias_crudas/Pacbio/*.fastq -o 01_Evaluacion_Secuencias/Reportes_Secuencias_Crudas/Pacbio/
+NanoPlot --threads 10 --fastq 00_Secuencias_crudas/Pacbio/*.fastq -o 01_Evaluacion_Secuencias/Reportes_Secuencias_Crudas/Pacbio/
 ```
 ### Unificamos los reportes con multiQC.
 ```
@@ -85,7 +86,7 @@ fastp -i 00_Secuencias_crudas/Illumina/[Nombre_de_Archivo].fastq \
       --qualified_quality_phred 30 \
       --length_required 50 \
       --detect_adapter_for_pe \
-      --thread 8
+      --thread 10
 ```
 | Parámetro | Nombre | Descripción Técnica |
 | :---: | :---: | :---: |
@@ -100,12 +101,12 @@ fastp -i 00_Secuencias_crudas/Illumina/[Nombre_de_Archivo].fastq \
 | **`-l 50`** | *Length Required* | Elimina lecturas que, tras el corte, tengan una longitud menor a 50 bp. |
 | **`--detect_adapter_for_pe`** | *Adapter Trimming* | Detecta y elimina automáticamente las secuencias de adaptadores en lecturas pareadas (Paired-End). |
 | **`--trim_poly_g`** | *PolyG Trimming* | Elimina colas de Guaninas (G) que suelen aparecer como ruido en secuenciadores de dos colores (como NovaSeq/NextSeq). |
-| **`--thread 8`** | *Hilos de procesamiento* | Utiliza 8 núcleos de tu procesador Ryzen para acelerar el análisis. |
+| **`--thread 10`** | *Hilos de procesamiento* | Utiliza 10 núcleos de tu procesador |
 
 > **Nota de Robustez:** Al usar `-q 30`, estamos siendo más estrictos que el estándar común (Q20), lo que garantiza que solo las bases de más alta confianza entren al proceso de ensamble con Unicycler.
 Filtrado de PacBio con `seqkit`
 ```
-seqkit seq -m 1000 --threads 8 00_Secuencias_crudas/Pacbio/[Nombre_de_Archivo].fastq > 02_Filtrado/[Nombre_de_Archivo]_filt.fastq
+seqkit seq -m 1000 --threads 10 00_Secuencias_crudas/Pacbio/[Nombre_de_Archivo].fastq > 02_Filtrado/[Nombre_de_Archivo]_filt.fastq
 ```
 ### Filtrado de Lecturas Largas (PacBio HiFi)
 A diferencia de Illumina, el filtrado de PacBio se enfoca en la longitud de los fragmentos para maximizar la capacidad del ensamblador de resolver regiones repetitivas.
@@ -114,7 +115,7 @@ A diferencia de Illumina, el filtrado de PacBio se enfoca en la longitud de los 
 | :---: | :---: | :---: |
 | **`seq`** | Comando de SeqKit | Indica que realizaremos una transformación o filtrado de secuencias. |
 | **`-m 1000`** | *Minimum length* | Elimina cualquier lectura que mida menos de 1,000 pares de bases. |
-| **`--threads 8`** | Multiprocesamiento | Aprovecha los 8 núcleos del procesador Ryzen. |
+| **`--threads 10`** | Multiprocesamiento | Utiliza 10 núcleos del procesador |
 | **`>`** | Redirección | Guarda el resultado filtrado en un nuevo archivo FASTQ. |
 
 > **Nota de Robustez:** Las lecturas HiFi ya vienen corregidas de fábrica. Filtrar por longitud mínima evita el "ruido" de fragmentos pequeños que podrían generar ensambles fragmentados o erróneos.
@@ -124,7 +125,7 @@ A diferencia de Illumina, el filtrado de PacBio se enfoca en la longitud de los 
 fastqc 02_Filtrado/[Nombre_de_Archivo]_R*_clean.fastq.gz -o 01_Evaluacion_Secuencias/Reportes_Post_Filtrado/Illumina/
 ```
 ```
-NanoPlot --threads 8 --fastq 02_Filtrado/[Nombre_de_Archivo]_filt.fastq -o 01_Evaluacion_Secuencias/Reportes_Post_Filtrado/Pacbio/
+NanoPlot --threads 10 --fastq 02_Filtrado/[Nombre_de_Archivo]_filt.fastq -o 01_Evaluacion_Secuencias/Reportes_Post_Filtrado/Pacbio/
 ```
 ```
 multiqc 01_Evaluacion_Secuencias/Reportes_Post_Filtrado/ -o 01_Evaluacion_Secuencias/Reportes_Post_Filtrado/ --title "Control de Calidad Post-Filtrado"
@@ -136,7 +137,7 @@ unicycler -1 02_Filtrado/[Nombre_de_Archivo]_R1_clean.fastq.gz \
           -2 02_Filtrado/[Nombre_de_Archivo]_R2_clean.fastq.gz \
           -l 02_Filtrado/[Nombre_de_Archivo]_filt.fastq \
           -o 03_Ensamble/ \
-          --threads 12 \
+          --threads 10 \
           --mode bold \
           --keep 2
 ```
@@ -146,6 +147,25 @@ unicycler -1 02_Filtrado/[Nombre_de_Archivo]_R1_clean.fastq.gz \
 | **`-l`** |	Lecturas PacBio |	Actúan como "puentes" para unir los contigs y cerrar el cromosoma |
 | **`-o`** |	Output |	Crea la carpeta 03_Ensamble/ con todos los resultados |
 | **`--mode bold`** |	Modo de ensamble | Prioriza la conectividad del genoma (produce menos contigs, pero más largos) |
-| **`--threads 12`** |	Procesamiento |	Optimizado para tu Ryzen (dejando algunos núcleos libres para el sistema) |
+| **`--threads 10`** |	Procesamiento |	 Utiliza 10 núcleos de tu procesador  (dejando algunos núcleos libres para el sistema) |
 | **`--keep 2`** |	Retención de archivos |	Guarda archivos intermedios útiles para depurar si algo falla |
 ---
+## Análisis de Calidad con Quast
+```
+quast 03_Ensamble/assembly.fasta -o 04_Evaluacion_Ensamble/quast_results/
+```
+## Análisis de calidad con Busco
+```
+busco -i 03_Ensamble/assembly.fasta \
+      -o 04_Evaluacion_Ensamble/busco_results/ \
+      -m genome \
+      -l lactobacillales_odb10 \
+      --cpu 10
+```
+| Parámetro | Función | Importancia |
+| :---: | :---: | :---: |
+| **`-i`** | Input | Tu archivo de ensamble final (assembly.fasta) |
+| **`-o`** | Output | Carpeta donde se guardarán los resultados de evaluación |
+| **`-m`** | genome | Mode Indica que vas a evaluar un genoma completo (no un transcriptoma) |
+| **`-l`** | Lineage | lactobacillales_odb10 es el set de genes esenciales para lactobacilos |
+| **`--cpu 10`** | Procesamiento |  Utiliza 10 núcleos de tu procesador  |
