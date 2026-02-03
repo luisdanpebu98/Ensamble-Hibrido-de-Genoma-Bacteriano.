@@ -137,13 +137,15 @@ unicycler -1 02_Filtrado/[Nombre_de_Archivo]_R1_clean.fastq.gz \
           -l 02_Filtrado/[Nombre_de_Archivo]_filt.fastq \
           -o 03_Ensamble/ \
           --threads 12 \
+          --mode bold \
           --keep 2
 ```
 | Parámetro | Función |	Importancia en tu proyecto |
 | :---: | :---: | :---: |
-| `-1 / -2` |	Lecturas Illumina |	Proporcionan la alta precisión para que no haya errores de indels |
-| `-l` |	Lecturas PacBio |	Actúan como "puentes" para unir los contigs y cerrar el cromosoma |
-| `-o` |	Output |	Crea la carpeta 03_Ensamble/ con todos los resultados |
-| `--threads 12` |	Procesamiento |	Optimizado para tu Ryzen (dejando algunos núcleos libres para el sistema) |
-| `--keep 2` |	Retención de archivos |	Guarda archivos intermedios útiles para depurar si algo falla |
+| **`-1 / -2`** |	Lecturas Illumina |	Proporcionan la alta precisión para que no haya errores de indels |
+| **`-l`** |	Lecturas PacBio |	Actúan como "puentes" para unir los contigs y cerrar el cromosoma |
+| **`-o`** |	Output |	Crea la carpeta 03_Ensamble/ con todos los resultados |
+| **`--mode bold`** |	Modo de ensamble | Prioriza la conectividad del genoma (produce menos contigs, pero más largos) |
+| **`--threads 12`** |	Procesamiento |	Optimizado para tu Ryzen (dejando algunos núcleos libres para el sistema) |
+| **`--keep 2`** |	Retención de archivos |	Guarda archivos intermedios útiles para depurar si algo falla |
 ---
